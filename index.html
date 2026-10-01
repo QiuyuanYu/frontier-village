@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>边境小镇 · Frontier Village</title>
+<meta name="description" content="边境小镇 · 轻量级村庄经营小游戏：建造、贸易、招募村民、抵御袭击，把荒地发展为繁荣村庄。">
+<meta name="theme-color" content="#18271d">
+<meta property="og:type" content="website">
+<meta property="og:title" content="边境小镇 · Frontier Village">
+<meta property="og:description" content="轻量级村庄经营小游戏：建造、贸易、抵御袭击，把荒地发展成繁荣村庄。">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%8F%B0%3C/text%3E%3C/svg%3E">
+<style>
+:root{--bg:#18271d;--panel:#3a2c22;--brown:#65452f;--gold:#ffda87;--text:#f7e9c8}
+*{box-sizing:border-box}body{margin:0;background:#18271d;color:var(--text);font:14px system-ui,-apple-system,"Segoe UI",sans-serif}
+#game{max-width:1100px;margin:16px auto;border:2px solid #795638;border-radius:13px;overflow:hidden;background:var(--bg)}
+button{font:inherit;cursor:pointer;border:1px solid #9a7048;background:#65452f;color:#fff1d0;border-radius:6px;padding:8px 12px}button:hover{filter:brightness(1.2)}button:disabled{opacity:.4;cursor:not-allowed}
+.top{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;background:#34271f;padding:12px;border-bottom:3px solid #765033}
+.logo{font-weight:900;font-size:20px;color:var(--gold)}.resources{display:flex;gap:7px;flex-wrap:wrap}.resource{background:#4c3728;border:1px solid #886342;border-radius:6px;padding:7px 10px;min-width:70px;text-align:center;font-weight:750}.resource small{display:block;color:#d6b88d;font-size:11px;font-weight:500}.resource span{font-size:16px}
+.status{background:#26372b;padding:8px 12px;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:center;color:#e6d2a5;font-size:12px}
+.status .st-btns{display:flex;gap:6px}
+.main{display:grid;grid-template-columns:minmax(0,1fr) 235px;min-height:480px}.map-wrap{position:relative;min-width:0;background:#71964c;overflow:hidden}canvas{display:block;width:100%;height:auto;aspect-ratio:720/600;image-rendering:pixelated;cursor:crosshair}.map-tip{position:absolute;left:10px;top:10px;background:#35291edc;border:1px solid #99724b;border-radius:6px;padding:7px 10px;font-size:12px;pointer-events:none}.map-controls{position:absolute;right:10px;top:10px;display:flex;gap:5px}.map-controls button{padding:6px 9px;background:#392d24dc}
+.side{background:#3a2c22;border-left:3px solid #765033;padding:12px;display:flex;flex-direction:column;gap:12px}.panel{background:#4a3729;border:1px solid #8c6745;border-radius:7px;padding:11px}.panel h3{font-size:15px;margin:0 0 8px;color:#ffdc94}.panel p{font-size:12px;line-height:1.6;margin:4px 0;color:#e7d5b8}.bar{height:9px;border:1px solid #271e19;background:#251e19;border-radius:8px;overflow:hidden;margin:5px 0 8px}.bar i{display:block;height:100%;background:#d8a34e}.bar.green i{background:#7eaf5a}.bar.blue i{background:#6fa6cf}.task{display:flex;gap:8px;align-items:flex-start;font-size:12px;line-height:1.5;margin:8px 0}.task button{padding:5px 8px;font-size:11px;white-space:nowrap}
+.bottom{background:#30251f;border-top:3px solid #765033;padding:10px}.tabs{display:flex;gap:6px;flex-wrap:wrap;justify-content:center}.tabs button{flex:1;min-width:65px;max-width:150px;padding:9px 5px;font-weight:750;font-size:13px}.tabs button.active{background:#bd8744;color:#25190f;border-color:#f2c77b}.actions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:10px}.action{background:#49372a;border:1px solid #80603f;border-radius:7px;padding:10px;text-align:left}.action b{display:block;color:#ffdb92;margin-bottom:4px;font-size:13px}.action p{font-size:11px;color:#d8c3a0;line-height:1.45;margin:0 0 8px}.action button{width:100%;font-size:12px;padding:7px}
+.footer{text-align:center;color:#b9a17f;font-size:11px;padding:9px}.toast{position:fixed;z-index:99;left:50%;bottom:20px;transform:translateX(-50%);background:#30251f;color:#ffe6a9;border:1px solid #c29254;padding:11px 18px;border-radius:8px;box-shadow:0 5px 25px #0006;pointer-events:none;opacity:0;transition:opacity .2s;max-width:90%;text-align:center}.toast.show{opacity:1}
+.modal{position:fixed;inset:0;background:#0009;display:none;align-items:center;justify-content:center;z-index:200;padding:20px}.modal.show{display:flex}.modal-box{background:#3a2c22;border:2px solid #c29254;border-radius:12px;padding:22px;max-width:440px;text-align:center;box-shadow:0 10px 40px #000a}.modal-box h2{margin:0 0 10px;color:#ffdc94;font-size:20px}.modal-box p{margin:0 0 16px;color:#e7d5b8;line-height:1.7;font-size:13px}
+@media(max-width:650px){#game{margin:0;border-radius:0}.main{grid-template-columns:1fr}.side{border-left:0;border-top:3px solid #765033;display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}.panel:first-child{grid-column:1/-1}canvas{aspect-ratio:720/600}.logo{font-size:16px}.actions{grid-template-columns:repeat(2,minmax(0,1fr))}.resource{min-width:60px;padding:5px}.resource span{font-size:14px}}
+</style>
+</head>
+<body>
+<div id="game">
+<header class="top">
+ <div class="logo">🏰 <span data-i="title">边境小镇</span></div>
+ <div class="resources">
+  <div class="resource">🪙 <span id="gold">1250</span><small data-i="goldLabel">金币</small></div>
+  <div class="resource">🪵 <span id="wood">340</span><small data-i="woodLabel">木材</small></div>
+  <div class="resource">🪨 <span id="stone">120</span><small data-i="stoneLabel">石料</small></div>
+  <div class="resource">🥕 <span id="food">85</span><small data-i="foodLabel">粮食</small></div>
+  <div class="resource">👥 <span id="pop">5/10</span><small data-i="popLabel">村民</small></div>
+ </div>
+ <button id="lang">EN / 中文</button>
+</header>
+<div class="status">
+  <span id="date">第1天 · 春季</span><span id="weather">☀️ 晴朗</span><span id="happiness">☺ 幸福度 75%</span>
+  <span class="st-btns"><button id="pause">Ⅱ 暂停</button><button id="restart">⟲ 重来</button></span>
+</div>
+<div class="main">
+ <div class="map-wrap">
+  <canvas id="canvas" width="720" height="600" aria-label="Village map"></canvas>
+  <div class="map-tip" id="mapTip">点击地图选择地块 / 建筑</div>
+  <div class="map-controls"><button id="zoomout">−</button><button id="zoomin">+</button><button id="center">⌖</button></div>
+ </div>
+ <aside class="side">
+  <div class="panel"><h3 id="questTitle">📜 当前任务</h3><div id="questList"></div></div>
+  <div class="panel"><h3 id="villageTitle">🏡 村庄概况</h3><p id="overview"></p><p id="income"></p><div id="progress"></div></div>
+  <div class="panel"><h3 id="selectedTitle">🔎 地块信息</h3><div id="selected"><p>点击地图上的建筑或空地。</p></div></div>
+  <div class="panel"><h3 id="tipTitle">💡 村长提示</h3><p id="tip">先建造农田和伐木场，建立稳定的粮食与木材来源。</p></div>
+ </aside>
+</div>
+<div class="bottom"><div class="tabs" id="tabs">
+ <button class="active" data-tab="build">🛠️ 建造</button><button data-tab="people">🧑 村民</button><button data-tab="trade">⚖️ 贸易</button><button data-tab="military">🛡️ 防御</button><button data-tab="quests">📜 任务</button>
+</div><div class="actions" id="actions"></div></div>
+<div class="footer" id="footer">进度自动保存到本地浏览器</div>
+</div>
+<div class="modal" id="modal"><div class="modal-box"><h2 id="modalTitle"></h2><p id="modalText"></p><button id="modalClose">OK</button></div></div>
+<div class="toast" id="toast"></div>
+<script>
+(()=>{
+'use strict';
+const $=id=>document.getElementById(id);
+const BASE_W=720, BASE_H=600, SAVE_KEY='frontier_village_save_v1';
+let dpr=1, lang='zh', tab='build', paused=false, won=false;
+let day=1, season=0, tick=0, zoom=1, selected=null, toastTimer;
+let R={gold:1250,wood:340,stone:120,food:85};
+let pop=5, capacity=10, happiness=75, level=1, rep=0, militia=0, guard=0, orderDone=0, nextId=1;
+let buildings=[], people=[], claimed={}, tiles=[], camX=0, camY=0;
+const W=24, H=20, cell=30;
+const canvas=$('canvas'), ctx=canvas.getContext('2d');
+
+const T={
+zh:{title:'边境小镇',goldLabel:'金币',woodLabel:'木材',stoneLabel:'石料',foodLabel:'粮食',popLabel:'村民',season:['春季','夏季','秋季','冬季'],weather:['☀️ 晴朗','🌤️ 多云','🌧️ 小雨','🌬️ 大风'],running:'▶ 运行中',paused:'Ⅱ 已暂停',quest:'📜 当前任务',overview:'🏡 村庄概况',selected:'🔎 地块信息',tiptitle:'💡 村长提示',maptip:'点击地图选择地块 / 建筑',happiness:'幸福度',level:'村庄等级',income:'每日收支',build:'建造',people:'村民',trade:'贸易',military:'防御',empty:'点击地图上的建筑或空地。',emptyland:'空地',occupied:'已建造',buildable:'可建造',buildhere:'在此建造',cancel:'取消',collect:'收取产出',upgrade:'升级建筑',demolish:'拆除建筑',demolishConfirm:'确定拆除这座建筑？',notEnough:'资源不足！',noSpace:'这里不能建造！请先点击绿色空地，再选择建筑。',built:'建造完成！',upgraded:'升级成功！',demolished:'建筑已拆除。',pausedMsg:'游戏已暂停',resumed:'游戏继续运行',foodNeed:'每日粮食消耗',buildings:'建筑数',population:'人口',capacity:'人口上限',free:'闲置村民',workers:'工人',production:'每日产量',workersReq:'工人需求',buildingLevel:'等级',cost:'建造成本',claim:'领取奖励',reward:'奖励',progress:'进度',complete:'完成！',tradeTitle:'贸易订单',tradeDesc:'出售资源赚取金币，或购买急需物资。',buy:'购买',sell:'出售',hire:'招募村民',hireDesc:'支付金币和粮食，增加一位村民。',train:'训练民兵',trainDesc:'训练民兵守卫村庄，每位民兵需要金币和粮食。',noRoom:'人口已达上限，请先建造房屋。',noFood:'粮食不足！',noGold:'金币不足！',noVillagers:'没有空闲村民！',hireSuccess:'新村民加入村庄！',trainSuccess:'民兵训练完成！',hireGuard:'招募守卫',guardDesc:'守卫可降低袭击造成的损失。',raidWin:'民兵成功击退强盗！',raidLoss:'村庄遭到袭击，损失了一些资源。',festival:'丰收庆典！村民幸福度提高。',drought:'干旱天气！农田产量下降。',questReward:'任务奖励已领取！',noQuest:'暂无可领取任务。',questsAll:'全部任务',emptyQ:'完成目标即可领取奖励。',tradeDone:'交易完成！',tradeFail:'交易未完成，检查资源数量。',nothing:'没有可收取的产出。',upgradeMax:'已达到最高等级。',levelUp:'村庄升级！',farm:'农田',lumber:'伐木场',house:'民居',tavern:'酒馆',barracks:'兵营',quarry:'石矿场',market:'市场',well:'水井',wall:'木栅栏',farmDesc:'每个游戏日生产粮食。',lumberDesc:'每个游戏日生产木材。',houseDesc:'增加人口容量和税收。',tavernDesc:'提升幸福度，增加金币收入。',barracksDesc:'训练民兵并提升防御能力。',quarryDesc:'每个游戏日生产石料。',marketDesc:'提升贸易收益。',wellDesc:'提升幸福度与人口容量。',wallDesc:'降低袭击造成的损失。',q1:'建造一座农田',q2:'建造一座伐木场',q3:'拥有10位村民',q4:'建造一座酒馆',q5:'训练2名民兵',q6:'积累500金币',q7:'建造一座兵营',q8:'完成3笔贸易',q9:'村庄升至2级',q10:'建造一座石矿场',qdesc1:'开始耕种，获得稳定粮食。',qdesc2:'建造伐木场以持续获得木材。',qdesc3:'建造房屋并招募村民。',qdesc4:'酒馆提升幸福度与金币收入。',qdesc5:'训练民兵保护村庄。',qdesc6:'通过贸易和税收积累金币。',qdesc7:'建造兵营，提升防御能力。',qdesc8:'在贸易面板完成3笔交易。',qdesc9:'提升村庄规模与繁荣度。',qdesc10:'建造石矿场获取石料。',worker:'工人',farmer:'农夫',lumberjack:'伐木工',miner:'矿工',guardman:'民兵',welcome:'欢迎来到边境小镇！目标是把荒地发展成繁荣村庄。建造、贸易、完成任务并抵御袭击，发展到5级即可通关。',help:'游戏说明',helpText:'日期自动推进。粮食不足会降低幸福度；人口超过住房容量无法招募。建筑需建在绿色空地上。完成任务领取奖励，抵御随机袭击，发展到5级通关。',autoAssign:'自动分配工人',festivalBtn:'举办庆典 · 80金币',defense:'防御力量',drill:'组织演练',drillDone:'演练完成，士气提高！',victory:'恭喜！你已经成为边境领主！',victoryText:'你的边境小镇已经发展为繁荣的村庄，人口兴旺、防御稳固。可以继续经营，也可以点击「重来」开始新的挑战。',cont:'继续经营',restart:'⟲ 重来',restartConfirm:'确定要重新开始吗？当前进度将被清除。',saveLoaded:'已读取上次进度',daily:'每日产出',selectTile:'先选择一块绿色空地',tile:'地块',occupiedTile:'此地块已有建筑',save:'进度自动保存到本地浏览器',buildFirst:'请先建造兵营！'}
+,en:{title:'Frontier Village',goldLabel:'Gold',woodLabel:'Wood',stoneLabel:'Stone',foodLabel:'Food',popLabel:'Villagers',season:['Spring','Summer','Autumn','Winter'],weather:['☀️ Clear','🌤️ Cloudy','🌧️ Rain','🌬️ Windy'],running:'▶ Running',paused:'Ⅱ Paused',quest:'📜 Quests',overview:'🏡 Village Overview',selected:'🔎 Selected Tile',tiptitle:'💡 Mayor’s Tip',maptip:'Click a tile or building',happiness:'Happiness',level:'Village Level',income:'Daily balance',build:'Build',people:'People',trade:'Trade',military:'Defense',empty:'Select a building or empty tile.',emptyland:'Empty land',occupied:'Occupied',buildable:'Available for building',buildhere:'Build here',cancel:'Cancel',collect:'Collect output',upgrade:'Upgrade',demolish:'Demolish',demolishConfirm:'Demolish this building?',notEnough:'Not enough resources!',noSpace:'Cannot build here. Select a green empty tile first.',built:'Construction complete!',upgraded:'Upgrade complete!',demolished:'Building demolished.',pausedMsg:'Game paused',resumed:'Game resumed',foodNeed:'Daily food use',buildings:'Buildings',population:'Population',capacity:'Housing cap',free:'Idle villagers',workers:'Workers',production:'Daily output',workersReq:'Workers needed',buildingLevel:'Level',cost:'Build cost',claim:'Claim reward',reward:'Reward',progress:'Progress',complete:'Complete!',tradeTitle:'Trade Orders',tradeDesc:'Sell resources for gold or buy supplies.',buy:'Buy',sell:'Sell',hire:'Hire Villager',hireDesc:'Pay gold and food to welcome a villager.',train:'Train Militia',trainDesc:'Train militia to defend the village.',noRoom:'Housing full. Build a house first.',noFood:'Not enough food!',noGold:'Not enough gold!',noVillagers:'No idle villagers!',hireSuccess:'A villager has joined!',trainSuccess:'Militia training complete!',hireGuard:'Hire Guard',guardDesc:'Guards reduce losses during raids.',raidWin:'Militia repelled the bandits!',raidLoss:'Raiders took some village resources.',festival:'Harvest festival! Happiness increased.',drought:'Drought! Farm output reduced.',questReward:'Quest reward claimed!',noQuest:'No rewards available.',questsAll:'All Quests',emptyQ:'Complete objectives to claim rewards.',tradeDone:'Trade completed!',tradeFail:'Trade failed. Check resources.',nothing:'Nothing to collect.',upgradeMax:'Maximum level reached.',levelUp:'Village leveled up!',farm:'Farm',lumber:'Lumber Camp',house:'House',tavern:'Tavern',barracks:'Barracks',quarry:'Quarry',market:'Market',well:'Well',wall:'Wooden Wall',farmDesc:'Produces food daily.',lumberDesc:'Produces wood daily.',houseDesc:'Increases housing and tax income.',tavernDesc:'Boosts happiness and gold income.',barracksDesc:'Trains militia and boosts defense.',quarryDesc:'Produces stone daily.',marketDesc:'Improves trade profits.',wellDesc:'Improves happiness and housing.',wallDesc:'Reduces raid damage.',q1:'Build a Farm',q2:'Build a Lumber Camp',q3:'Reach 10 Villagers',q4:'Build a Tavern',q5:'Train 2 Militia',q6:'Accumulate 500 Gold',q7:'Build Barracks',q8:'Complete 3 Trades',q9:'Reach Village Level 2',q10:'Build a Quarry',qdesc1:'Start farming for steady food.',qdesc2:'Produce a steady supply of wood.',qdesc3:'Expand housing and recruit villagers.',qdesc4:'Boost happiness and gold income.',qdesc5:'Train militia to protect your village.',qdesc6:'Earn gold through trade and taxes.',qdesc7:'Increase defense with barracks.',qdesc8:'Complete 3 trades.',qdesc9:'Grow your village and prosperity.',qdesc10:'Produce stone.',worker:'Worker',farmer:'Farmer',lumberjack:'Lumberjack',miner:'Miner',guardman:'Militia',welcome:'Welcome to Frontier Village! Turn wilderness into a thriving settlement. Build, trade, complete quests, repel raids, and reach Level 5 to win.',help:'How to Play',helpText:'Days advance automatically. Low food reduces happiness; housing limits recruitment. Build on green empty land. Complete quests, repel raids, and reach Level 5 to win.',autoAssign:'Auto-assign workers',festivalBtn:'Hold festival · 80 gold',defense:'Defense strength',drill:'Drill troops',drillDone:'Drill complete. Morale increased!',victory:'Congratulations! You are Lord of the Frontier!',victoryText:'Your frontier village has grown into a thriving settlement. Keep building, or hit Restart to try a faster run.',cont:'Keep Playing',restart:'⟲ Restart',restartConfirm:'Restart? Current progress will be lost.',saveLoaded:'Previous save loaded',daily:'Daily output',selectTile:'Select green empty land',tile:'Tile',occupiedTile:'This tile is occupied',save:'Progress auto-saved in your browser',buildFirst:'Build a Barracks first!'}
+};
+const t=k=>T[lang][k]??k;
+
+const types={
+farm:{cost:{gold:100,wood:50},out:{food:16},workers:1,icon:'🌾'},
+lumber:{cost:{gold:100,wood:35},out:{wood:14},workers:1,icon:'🪓'},
+house:{cost:{gold:120,wood:90},out:{gold:5},workers:0,icon:'🏠'},
+tavern:{cost:{gold:250,wood:120,stone:25},out:{gold:18},workers:1,icon:'🍺'},
+barracks:{cost:{gold:300,wood:150,stone:100},out:{},workers:1,icon:'🛡️'},
+quarry:{cost:{gold:160,wood:70},out:{stone:10},workers:1,icon:'⛏️'},
+market:{cost:{gold:240,wood:130,stone:60},out:{gold:10},workers:1,icon:'🏪'},
+well:{cost:{gold:90,wood:40,stone:20},out:{},workers:0,icon:'🪣'},
+wall:{cost:{gold:40,wood:35},out:{},workers:0,icon:'🪵'}};
+
+const qs=[
+{id:1,type:'build',target:'farm',goal:1,reward:{gold:120,wood:30}},
+{id:2,type:'build',target:'lumber',goal:1,reward:{gold:100,food:35}},
+{id:3,type:'pop',goal:10,reward:{gold:180,wood:50}},
+{id:4,type:'build',target:'tavern',goal:1,reward:{gold:200,food:50}},
+{id:5,type:'militia',goal:2,reward:{gold:250,stone:40}},
+{id:6,type:'gold',goal:500,reward:{wood:100,food:80}},
+{id:7,type:'build',target:'barracks',goal:1,reward:{gold:300,stone:60}},
+{id:8,type:'trade',goal:3,reward:{gold:200,wood:80}},
+{id:9,type:'level',goal:2,reward:{gold:350,food:100}},
+{id:10,type:'build',target:'quarry',goal:1,reward:{gold:250,stone:80}}];
+
+/* ---------- utils ---------- */
+function rand(x,y){let n=Math.sin(x*127.1+y*311.7+4521)*43758.5453;return n-Math.floor(n)}
+function tile(x,y){return tiles[y*W+x]}
+function count(type){return buildings.filter(b=>b.type===type).length}
+function costText(cost){return Object.entries(cost).map(([k,v])=>({gold:'🪙',wood:'🪵',stone:'🪨',food:'🥕'}[k]+' '+v)).join(' · ')}
+function hasCost(cost){return Object.entries(cost).every(([k,v])=>R[k]>=v)}
+function pay(cost){for(const[k,v]of Object.entries(cost))R[k]-=v}
+function addRes(obj){for(const[k,v]of Object.entries(obj))R[k]=Math.max(0,Math.min(99999,R[k]+v))}
+function freeWorkers(){return Math.max(0,pop-buildings.reduce((a,b)=>a+b.workers,0)-militia)}
+function toast(msg){const el=$('toast');el.textContent=msg;el.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.classList.remove('show'),2400)}
+
+/* ---------- map ---------- */
+function initMap(){
+  tiles=[];
+  for(let y=0;y<H;y++)for(let x=0;x<W;x++){
+    let kind='grass';
+    if(x<2||x>21||y<2||y>17)kind='tree';
+    if((x<4&&y<6)||(x>19&&y<5)||(x<4&&y>15))kind='rock';
+    if((x===11||x===12)&&y>0&&y<H-1)kind='road';
+    if(y===10&&(x<9||x>14))kind='road';
+    if((x===8||x===15)&&y>=8&&y<=12)kind='road';
+    if(x>8&&x<15&&y>7&&y<13)kind='plaza';
+    if(rand(x,y)>.97&&kind==='grass')kind='flower';
+    tiles.push({x,y,kind,b:null});
+  }
+}
+function randomWalkSpot(){
+  for(let i=0;i<60;i++){
+    const x=8+Math.floor(Math.random()*8), y=8+Math.floor(Math.random()*5);
+    const tl=tile(x,y);
+    if(tl&&!tl.b&&(tl.kind==='grass'||tl.kind==='plaza'||tl.kind==='flower'))return{x,y};
+  }
+  return{x:11,y:10};
+}
+function addBuilding(type,x,y,free){
+  const b={id:nextId++,type,x,y,level:1,stored:0,workers:types[type].workers};
+  buildings.push(b);
+  const tl=tile(x,y); if(tl)tl.b=b;
+  if(!free)pay(types[type].cost);
+  capacity=10+count('house')*5+count('well')*2;
+  return b;
+}
+
+/* ---------- save / load ---------- */
+function save(){
+  try{
+    localStorage.setItem(SAVE_KEY,JSON.stringify({
+      v:1,lang,day,season,R,pop,happiness,level,rep,militia,guard,orderDone,claimed,
+      buildings:buildings.map(b=>({id:b.id,type:b.type,x:b.x,y:b.y,level:b.level,stored:b.stored,workers:b.workers})),
+      people
+    }));
+  }catch(e){/* ignore */}
+}
+function load(){
+  let raw;
+  try{raw=localStorage.getItem(SAVE_KEY)}catch(e){return false}
+  if(!raw)return false;
+  let d;
+  try{d=JSON.parse(raw)}catch(e){return false}
+  if(!d||d.v!==1)return false;
+  try{
+    R=Object.assign({gold:0,wood:0,stone:0,food:0},d.R||{});
+    pop=Math.max(1,d.pop|0);
+    happiness=Math.max(0,Math.min(100,d.happiness|0));
+    level=Math.max(1,d.level|0);
+    rep=d.rep|0; militia=d.militia|0; guard=d.guard|0; orderDone=d.orderDone|0;
+    day=d.day||1; season=d.season|0; claimed=d.claimed||{};
+    if(d.lang==='zh'||d.lang==='en')lang=d.lang;
+    initMap();
+    buildings=[];
+    let maxId=0;
+    (d.buildings||[]).forEach(sb=>{
+      if(!types[sb.type])return;
+      const tl=tile(sb.x,sb.y);
+      if(!tl||tl.b)return;
+      const nb={id:sb.id,type:sb.type,x:sb.x,y:sb.y,level:sb.level||1,stored:sb.stored||0,workers:sb.workers||0};
+      tl.b=nb; buildings.push(nb);
+      if(nb.id>maxId)maxId=nb.id;
+    });
+    nextId=maxId+1;
+    capacity=10+count('house')*5+count('well')*2;
+    if(Array.isArray(d.people)&&d.people.length===pop)people=d.people.map(p=>({x:p.x|0,y:p.y|0}));
+    else people=Array.from({length:pop},()=>randomWalkSpot());
+    selected=null;
+    return true;
+  }catch(e){return false}
+}
+
+/* ---------- new game ---------- */
+function newGame(){
+  R={gold:1250,wood:340,stone:120,food:85};
+  pop=5; capacity=10; happiness=75; level=1; rep=0; militia=0; guard=0; orderDone=0;
+  nextId=1; day=1; season=0; tick=0; buildings=[]; people=[]; claimed={}; selected=null;
+  zoom=1; camX=0; camY=0; won=false; paused=false;
+  initMap();
+  addBuilding('house',9,8,true);
+  addBuilding('farm',7,7,true);
+  addBuilding('lumber',14,7,true);
+  addBuilding('well',15,12,true);
+  addBuilding('house',9,12,true);
+  people=Array.from({length:5},(_,i)=>({x:9+i%3,y:9+Math.floor(i/3)}));
+  selected={type:'building',id:buildings[1].id};
+  save();
+}
+
+/* ---------- canvas ---------- */
+function setupCanvas(){
+  dpr=Math.min(2,window.devicePixelRatio||1);
+  canvas.width=Math.round(BASE_W*dpr);
+  canvas.height=Math.round(BASE_H*dpr);
+  draw();
+}
+function drawBuilding(b,x,y){
+  const c=ctx;
+  c.fillStyle='#3e3227';c.fillRect(x+3,y+7,24,21);
+  if(b.type==='farm'){
+    c.fillStyle='#87633c';c.fillRect(x+3,y+5,24,23);
+    c.fillStyle='#d2a956';for(let i=0;i<4;i++)c.fillRect(x+5+i*5,y+8,3,17);
+    c.fillStyle='#79a650';for(let i=0;i<4;i++)c.fillRect(x+5+i*5,y+8,2,3);
+  }else if(b.type==='well'){
+    c.fillStyle='#8c9996';c.fillRect(x+4,y+10,22,17);
+    c.fillStyle='#37423d';c.fillRect(x+8,y+14,14,10);
+    c.fillStyle='#b7bcb3';c.fillRect(x+3,y+8,24,5);
+  }else if(b.type==='wall'){
+    c.fillStyle='#946d46';for(let i=0;i<5;i++)c.fillRect(x+3+i*5,y+7,4,22);
+  }else{
+    c.fillStyle=({lumber:'#a16d42',house:'#925a39',tavern:'#9a6744',barracks:'#77766b',quarry:'#888c85',market:'#a27a4d'})[b.type]||'#9a7652';
+    c.fillRect(x+4,y+11,22,17);
+    c.fillStyle='#d5b78b';c.beginPath();c.moveTo(x+1,y+12);c.lineTo(x+15,y+1);c.lineTo(x+29,y+12);c.closePath();c.fill();
+    c.fillStyle='#78462e';c.beginPath();c.moveTo(x+1,y+12);c.lineTo(x+15,y+1);c.lineTo(x+15,y+7);c.lineTo(x+4,y+15);c.closePath();c.fill();
+    c.fillStyle='#523c2c';c.fillRect(x+12,y+17,7,11);
+    c.fillStyle='#dfc69c';c.fillRect(x+6,y+16,4,5);c.fillRect(x+21,y+16,4,5);
+  }
+  c.fillStyle='#fff1c9';c.font='bold 11px sans-serif';c.textAlign='center';c.fillText(b.level,x+15,y+28);
+}
+function draw(){
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  ctx.clearRect(0,0,BASE_W,BASE_H);
+  ctx.save();
+  ctx.translate(BASE_W/2,BASE_H/2);
+  ctx.scale(zoom,zoom);
+  ctx.translate(-BASE_W/2+camX,-BASE_H/2+camY);
+
+  for(let y=0;y<H;y++)for(let x=0;x<W;x++){
+    const a=tile(x,y),px=x*cell,py=y*cell;
+    ctx.fillStyle=({road:'#ae8958',plaza:'#c5a16c',rock:'#66716b',tree:'#5e8244',flower:'#84a958',grass:rand(x,y)>.5?'#86b45a':'#709c4b'})[a.kind];
+    ctx.fillRect(px,py,cell,cell);
+    if(a.kind==='grass'&&rand(x+1,y+1)>.7){ctx.fillStyle='#6d9648';ctx.fillRect(px+8,py+12,2,2)}
+    if(a.kind==='road'||a.kind==='plaza'){ctx.fillStyle='#d6b989';ctx.fillRect(px+5,py+8,3,2);ctx.fillRect(px+20,py+23,4,2)}
+    if(a.kind==='tree'){
+      ctx.fillStyle='#4d6337';ctx.fillRect(px+12,py+17,7,12);
+      ctx.fillStyle='#315c35';ctx.beginPath();ctx.arc(px+15,py+12,13,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle='#4e7a40';ctx.beginPath();ctx.arc(px+10,py+9,8,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle='#6b9450';ctx.fillRect(px+7,py+6,4,3);
+    }
+    if(a.kind==='rock'){
+      ctx.fillStyle='#9da29a';ctx.beginPath();ctx.moveTo(px+2,py+25);ctx.lineTo(px+9,py+6);ctx.lineTo(px+19,py+2);ctx.lineTo(px+28,py+22);ctx.closePath();ctx.fill();
+      ctx.fillStyle='#c7c9c0';ctx.beginPath();ctx.moveTo(px+9,py+6);ctx.lineTo(px+19,py+2);ctx.lineTo(px+15,py+14);ctx.closePath();ctx.fill();
+    }
+    if(a.kind==='flower'){ctx.fillStyle='#eddf8b';ctx.fillRect(px+13,py+13,4,4)}
+    if(a.b)drawBuilding(a.b,px,py);
+  }
+
+  people.forEach((p,i)=>{
+    const x=p.x*cell+15,y=p.y*cell+17;
+    ctx.fillStyle='#392b20';ctx.fillRect(x-5,y+4,10,8);
+    ctx.fillStyle=['#d5a06b','#e6c6a0','#b47a4d','#f0d2ad'][i%4];ctx.fillRect(x-5,y-6,10,11);
+    ctx.fillStyle='#503326';ctx.fillRect(x-6,y-8,12,4);
+    ctx.fillStyle='#fff0c8';ctx.fillRect(x-3,y-3,2,2);ctx.fillRect(x+2,y-3,2,2);
+  });
+
+  if(selected){
+    const a=selected.type==='building'?buildings.find(b=>b.id===selected.id):tile(selected.x,selected.y);
+    if(a){ctx.strokeStyle='#ffec62';ctx.lineWidth=3;ctx.strokeRect(a.x*cell+2,a.y*cell+2,cell-4,cell-4)}
+  }
+  ctx.restore();
+}
+
+/* ---------- rendering ---------- */
+function applyLang(){
+  document.querySelectorAll('[data-i]').forEach(el=>{el.textContent=t(el.dataset.i)});
+  $('questTitle').textContent=t('quest');
+  $('villageTitle').textContent=t('overview');
+  $('selectedTitle').textContent=t('selected');
+  $('tipTitle').textContent=t('tiptitle');
+  $('mapTip').textContent=t('maptip');
+  $('footer').textContent=t('save');
+}
+function renderResources(){
+  ['gold','wood','stone','food'].forEach(k=>{$ (k).textContent=Math.floor(R[k])});
+  $('pop').textContent=pop+'/'+capacity;
+  $('date').textContent=(lang==='zh'?'第'+day+'天 · ':'Day '+day+' · ')+T[lang].season[season];
+  $('weather').textContent=T[lang].weather[(day+season)%4];
+  $('happiness').textContent='☺ '+t('happiness')+' '+happiness+'%';
+  $('pause').textContent=paused?t('paused'):t('running');
+}
+function qprog(q){
+  if(q.type==='build')return count(q.target);
+  if(q.type==='pop')return pop;
+  if(q.type==='militia')return militia;
+  if(q.type==='gold')return R.gold;
+  if(q.type==='trade')return orderDone;
+  if(q.type==='level')return level;
+  return 0;
+}
+function renderQuest(){
+  const list=qs.filter(q=>!claimed[q.id]).slice(0,4);
+  $('questList').innerHTML=list.map(q=>{
+    const p=Math.min(qprog(q),q.goal);
+    return `<div class="task"><span style="flex:1"><b>${t('q'+q.id)}</b><br><span style="color:#cbb18d">${p}/${q.goal}</span><div class="bar"><i style="width:${p/q.goal*100}%"></i></div></span>${p>=q.goal?`<button data-claim="${q.id}">${t('claim')}</button>`:''}</div>`;
+  }).join('')||`<p>${t('victory')}</p>`;
+  $('questList').querySelectorAll('[data-claim]').forEach(b=>b.onclick=()=>claim(+b.dataset.claim));
+}
+function renderSelected(){
+  const el=$('selected');
+  if(!selected){el.innerHTML=`<p>${t('empty')}</p>`;return}
+  if(selected.type==='building'){
+    const b=buildings.find(b=>b.id===selected.id);
+    if(!b){el.innerHTML=`<p>${t('empty')}</p>`;return}
+    const typ=types[b.type];
+    const prod=Object.entries(typ.out).map(([k,v])=>`${v*b.level} ${t(k+'Label')}`).join(', ')||'—';
+    el.innerHTML=`<p style="font-size:16px"><b>${typ.icon} ${t(b.type)}</b></p><p>${t('buildingLevel')}: ${b.level}/3<br>${t('workersReq')}: ${b.workers}<br>${t('production')}: ${prod}</p><button id="upgrade">${t('upgrade')} · ${costText({gold:100*b.level,wood:50*b.level})}</button> <button id="collect">${t('collect')}</button> <button id="demolish">${t('demolish')}</button>`;
+    $('upgrade').onclick=()=>upgrade(b);
+    $('collect').onclick=()=>collect(b);
+    $('demolish').onclick=()=>demolish(b);
+  }else{
+    const a=tile(selected.x,selected.y);
+    const buildable=a&&a.kind==='grass';
+    el.innerHTML=`<p><b>${t('emptyland')}</b> (${selected.x+1},${selected.y+1})</p><p>${buildable?t('buildable'):t('occupiedTile')}</p>`+(buildable?`<button id="buildHere">${t('buildhere')}</button>`:'');
+    const bh=$('buildHere');
+    if(bh)bh.onclick=()=>{tab='build';renderActions()};
+  }
+}
+function renderOverview(){
+  $('overview').innerHTML=`${t('population')}: <b>${pop}/${capacity}</b><br>${t('free')}: <b>${freeWorkers()}</b><br>${t('buildings')}: <b>${buildings.length}</b><br>${t('level')}: <b>${level}/5</b>`;
+  $('income').textContent=`${t('foodNeed')}: ${Math.max(2,Math.ceil(pop*.6))} 🥕`;
+  $('progress').innerHTML=`<small>${t('happiness')}: ${happiness}%</small><div class="bar green"><i style="width:${happiness}%"></i></div><small>${t('level')} ${level}/5</small><div class="bar blue"><i style="width:${Math.min(100,rep*10+buildings.length*5)}%"></i></div>`;
+}
+function render(){
+  renderResources();renderQuest();renderOverview();renderSelected();renderActions();
+}
+function renderActions(){
+  document.querySelectorAll('[data-tab]').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab));
+  const a=$('actions');
+  if(tab==='build'){
+    a.innerHTML=Object.keys(types).map(type=>{
+      const x=types[type];
+      return `<div class="action"><b>${x.icon} ${t(type)}</b><p>${t(type+'Desc')}<br>${t('cost')}: ${costText(x.cost)}</p><button data-build="${type}">${t('buildhere')}</button></div>`;
+    }).join('');
+    a.querySelectorAll('[data-build]').forEach(b=>b.onclick=()=>build(b.dataset.build));
+  }else if(tab==='people'){
+    a.innerHTML=`<div class="action"><b>🧑 ${t('hire')}</b><p>${t('hireDesc')}<br>🪙100 · 🥕10</p><button id="hire">${t('hire')}</button></div><div class="action"><b>👨‍🌾 ${t('workers')}</b><p>${t('free')}: ${freeWorkers()}</p><button id="assign">${t('autoAssign')}</button></div><div class="action"><b>☺ ${t('happiness')}</b><p>${happiness}%</p><button id="festival">${t('festivalBtn')}</button></div>`;
+    $('hire').onclick=hire;
+    $('assign').onclick=()=>{autoAssign();save();toast(t('autoAssign'));render();draw()};
+    $('festival').onclick=festival;
+  }else if(tab==='trade'){
+    const deals=[['wood',30,90,'sell'],['food',25,75,'sell'],['stone',20,100,'sell'],['wood',30,120,'buy'],['food',30,90,'buy'],['stone',20,130,'buy']];
+    a.innerHTML=`<div class="action" style="grid-column:1/-1"><b>⚖️ ${t('tradeTitle')}</b><p>${t('tradeDesc')}<br>${lang==='zh'?'已完成交易':'Trades completed'}: ${orderDone}</p></div>`+
+      deals.map((d,i)=>`<div class="action"><b>${d[3]==='sell'?'📦':'🛒'} ${t(d[3])} ${t(d[0]+'Label')}</b><p>${d[3]==='sell'?'-':'+'}${d[1]} · ${d[3]==='sell'?'+':'−'}${d[2]} 🪙</p><button data-trade="${i}">${t(d[3])}</button></div>`).join('');
+    a.querySelectorAll('[data-trade]').forEach(b=>b.onclick=()=>trade(deals[+b.dataset.trade]));
+  }else if(tab==='military'){
+    a.innerHTML=`<div class="action"><b>🛡️ ${t('train')}</b><p>${t('trainDesc')}<br>🪙120 · 🥕15</p><button id="train">${t('train')}</button></div><div class="action"><b>🏰 ${t('hireGuard')}</b><p>${t('guardDesc')}<br>🪙180</p><button id="guard">${t('hireGuard')}</button></div><div class="action"><b>⚔️ ${t('defense')}</b><p>Militia: ${militia} · Guards: ${guard}</p><button id="drill">${t('drill')}</button></div>`;
+    $('train').onclick=train;
+    $('guard').onclick=hireGuard;
+    $('drill').onclick=drill;
+  }else{
+    a.innerHTML=qs.map(q=>{
+      const done=qprog(q)>=q.goal;
+      return `<div class="action"><b>${t('q'+q.id)} ${claimed[q.id]?'✓':''}</b><p>${t('qdesc'+q.id)}<br>${t('progress')}: ${Math.min(q.goal,qprog(q))}/${q.goal}<br>${t('reward')}: ${costText(q.reward)}</p>${done&&!claimed[q.id]?`<button data-qclaim="${q.id}">${t('claim')}</button>`:''}</div>`;
+    }).join('');
+    a.querySelectorAll('[data-qclaim]').forEach(b=>b.onclick=()=>claim(+b.dataset.qclaim));
+  }
+}
+
+/* ---------- actions ---------- */
+function build(type){
+  const cost=types[type].cost;
+  if(!hasCost(cost)){toast(t('notEnough'));return}
+  const target=selected&&selected.type==='tile'?tile(selected.x,selected.y):null;
+  if(!target||target.kind!=='grass'||target.b){toast(t('noSpace'));return}
+  pay(cost);
+  const b=addBuilding(type,target.x,target.y,true);
+  selected={type:'building',id:b.id};
+  autoAssign();
+  save();
+  toast(t('built'));
+  render();draw();
+}
+function upgrade(b){
+  if(b.level>=3){toast(t('upgradeMax'));return}
+  const cost={gold:100*b.level,wood:50*b.level};
+  if(!hasCost(cost)){toast(t('notEnough'));return}
+  pay(cost);b.level++;
+  save();
+  toast(t('upgraded'));
+  render();draw();
+}
+function collect(b){
+  const keys=Object.keys(types[b.type].out);
+  if(!keys.length||!b.stored){toast(t('nothing'));return}
+  addRes({[keys[0]]:b.stored});
+  b.stored=0;
+  save();
+  render();draw();
+}
+function demolish(b){
+  if(!confirm(t('demolishConfirm')))return;
+  buildings=buildings.filter(x=>x.id!==b.id);
+  const tl=tile(b.x,b.y);if(tl)tl.b=null;
+  selected=null;
+  capacity=10+count('house')*5+count('well')*2;
+  save();
+  toast(t('demolished'));
+  render();draw();
+}
+function autoAssign(){
+  let slots=Math.max(0,pop-militia);
+  buildings.forEach(b=>b.workers=0);
+  buildings.forEach(b=>{
+    const need=types[b.type].workers;
+    if(need<=0)return;
+    const n=Math.min(need,slots);
+    b.workers=n;slots-=n;
+  });
+}
+function hire(){
+  if(pop>=capacity){toast(t('noRoom'));return}
+  if(R.gold<100){toast(t('noGold'));return}
+  if(R.food<10){toast(t('noFood'));return}
+  R.gold-=100;R.food-=10;pop++;
+  people.push(randomWalkSpot());
+  autoAssign();save();
+  toast(t('hireSuccess'));
+  render();draw();
+}
+function train(){
+  if(!count('barracks')){toast(t('buildFirst'));return}
+  if(R.gold<120){toast(t('noGold'));return}
+  if(R.food<15){toast(t('noFood'));return}
+  if(freeWorkers()<1){toast(t('noVillagers'));return}
+  R.gold-=120;R.food-=15;militia++;
+  save();
+  toast(t('trainSuccess'));
+  render();
+}
+function hireGuard(){
+  if(R.gold<180){toast(t('noGold'));return}
+  R.gold-=180;guard++;
+  save();
+  render();
+}
+function drill(){
+  if(R.food<10){toast(t('noFood'));return}
+  R.food-=10;happiness=Math.min(100,happiness+3);
+  save();
+  toast(t('drillDone'));
+  render();
+}
+function festival(){
+  if(R.gold<80){toast(t('noGold'));return}
+  R.gold-=80;happiness=Math.min(100,happiness+15);
+  save();
+  render();
+}
+function trade(d){
+  const[k,qty,price,type]=d;
+  if(type==='sell'){
+    if(R[k]<qty){toast(t('tradeFail'));return}
+    R[k]-=qty;R.gold=Math.min(99999,R.gold+price);
+  }else{
+    if(R.gold<price){toast(t('noGold'));return}
+    R.gold-=price;R[k]=Math.min(99999,R[k]+qty);
+  }
+  orderDone++;
+  save();
+  toast(t('tradeDone'));
+  render();
+}
+function claim(id){
+  const q=qs.find(x=>x.id===id);
+  if(!q||claimed[id]||qprog(q)<q.goal)return;
+  claimed[id]=true;addRes(q.reward);rep++;
+  save();
+  toast(t('questReward'));
+  render();
+}
+
+/* ---------- daily tick ---------- */
+function newDay(){
+  day++;tick++;
+  if(day%15===0)season=(season+1)%4;
+
+  for(const b of buildings){
+    const def=types[b.type];
+    if(!def)continue;
+    const needWorker=def.workers>0;
+    const eff=needWorker?(b.workers>0?1:.25):1;
+    for(const[k,v]of Object.entries(def.out)){
+      let amount=Math.floor(v*b.level*eff);
+      if(k==='food'&&season===3)amount=Math.floor(amount*.5);
+      if(amount<=0)continue;
+      if(k==='gold')R.gold=Math.min(99999,R.gold+amount);
+      else b.stored=Math.min(9999,b.stored+amount);
+    }
+  }
+
+  const need=Math.max(2,Math.ceil(pop*.6));
+  R.food-=need;
+  if(R.food<0){R.food=0;happiness=Math.max(10,happiness-8)}
+  else happiness=Math.min(100,happiness+1);
+
+  R.gold=Math.min(99999,R.gold+Math.floor(pop*2+happiness/10));
+
+  if(day%7===0){
+    if(Math.random()<.55){
+      if(militia+guard>=2){R.gold=Math.min(99999,R.gold+40);rep++;toast(t('raidWin'))}
+      else{
+        R.gold=Math.max(0,R.gold-80);R.food=Math.max(0,R.food-20);
+        happiness=Math.max(10,happiness-10);toast(t('raidLoss'));
+      }
+    }else{
+      happiness=Math.min(100,happiness+5);R.food=Math.min(99999,R.food+15);toast(t('festival'));
+    }
+  }
+  if(day%10===0&&Math.random()<.25)toast(t('drought'));
+
+  levelCheck();
+  save();
+  render();draw();
+}
+function levelCheck(){
+  let n=1;
+  if(buildings.length>=7&&pop>=7)n=2;
+  if(buildings.length>=10&&pop>=10&&militia>=2)n=3;
+  if(buildings.length>=14&&pop>=13&&rep>=5)n=4;
+  if(buildings.length>=18&&pop>=16&&rep>=8&&militia>=4)n=5;
+  if(n>level){
+    level=n;
+    toast(t('levelUp'));
+    if(level>=5&&!won){
+      won=true;paused=true;save();renderResources();
+      setTimeout(()=>showModal('🏆 '+t('victory'),t('victoryText'),t('cont'),()=>{paused=false;renderResources()}),350);
+    }
+  }
+}
+
+/* ---------- modal ---------- */
+function showModal(title,text,btn,cb){
+  $('modalTitle').textContent=title;
+  $('modalText').textContent=text;
+  $('modalClose').textContent=btn||'OK';
+  $('modalClose').onclick=()=>{$('modal').classList.remove('show');if(cb)cb()};
+  $('modal').classList.add('show');
+}
+$('modal').addEventListener('click',e=>{if(e.target===$('modal'))$('modal').classList.remove('show')});
+
+/* ---------- input ---------- */
+canvas.addEventListener('click',e=>{
+  const r=canvas.getBoundingClientRect();
+  const sx=(e.clientX-r.left)/r.width*BASE_W;
+  const sy=(e.clientY-r.top)/r.height*BASE_H;
+  const wx=(sx-BASE_W/2)/zoom-camX+BASE_W/2;
+  const wy=(sy-BASE_H/2)/zoom-camY+BASE_H/2;
+  const mx=Math.floor(wx/cell),my=Math.floor(wy/cell);
+  if(mx<0||mx>=W||my<0||my>=H)return;
+  const a=tile(mx,my);
+  selected=a.b?{type:'building',id:a.b.id}:{type:'tile',x:mx,y:my};
+  renderSelected();draw();
+});
+document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{tab=b.dataset.tab;renderActions()});
+$('lang').onclick=()=>{lang=lang==='zh'?'en':'zh';applyLang();render();save()};
+$('pause').onclick=()=>{paused=!paused;renderResources();toast(paused?t('pausedMsg'):t('resumed'))};
+$('restart').onclick=()=>{
+  if(!confirm(t('restartConfirm')))return;
+  try{localStorage.removeItem(SAVE_KEY)}catch(e){}
+  newGame();
+  applyLang();
+  render();draw();
+  toast(t('welcome'));
+};
+$('zoomin').onclick=()=>{zoom=Math.min(1.6,zoom+.1);draw()};
+$('zoomout').onclick=()=>{zoom=Math.max(.7,zoom-.1);draw()};
+$('center').onclick=()=>{zoom=1;camX=camY=0;draw()};
+window.addEventListener('resize',()=>{clearTimeout(window.__rt);window.__rt=setTimeout(setupCanvas,150)});
+window.addEventListener('beforeunload',save);
+document.addEventListener('visibilitychange',()=>{if(document.hidden)save()});
+
+/* ---------- boot ---------- */
+function init(){
+  const loaded=load();
+  if(!loaded)newGame();
+  applyLang();
+  setupCanvas();
+  render();
+  toast(loaded?t('saveLoaded'):t('welcome'));
+}
+setInterval(()=>{if(!paused){tick++;if(tick%8===0)newDay()}},1000);
+init();
+})();
+</script>
+</body>
+</html>
